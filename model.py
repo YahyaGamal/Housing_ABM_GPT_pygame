@@ -16,8 +16,10 @@ INTEREST_RATE = 0.05  # 5% annual interest rate, simplified for simulation
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BLUE = (0, 100, 255)
+CYAN = (100, 200, 255)
 GREEN = (0, 200, 100)
 RED = (255, 50, 50)
+PALERED = (255, 150, 150)
 YELLOW = (255, 255, 100)
 PURPLE = (200, 100, 255)
 
@@ -51,7 +53,7 @@ class House:
         self.occupancy_history = []
 
     def draw(self):
-        color = GREEN if self.owned and not self.rented else YELLOW if self.rented else WHITE
+        color = CYAN if self.owned and not self.rented else PALERED if self.rented else WHITE
         pygame.draw.rect(screen, color, (self.x * TILE_SIZE, self.y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
 
@@ -201,7 +203,8 @@ def draw_graph():
     
     # Scale data
     max_price = max(max(price_history), max(rent_history))
-    min_price = min(min(price_history), min(rent_history))
+    # min_price = min(min(price_history), min(rent_history))
+    min_price = 0
     price_range = max_price - min_price if max_price != min_price else 1
     
     def scale_y(value):
