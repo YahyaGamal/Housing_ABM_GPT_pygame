@@ -1,0 +1,243 @@
+\section{Model Description} \label{Model Description}
+The ABM is intended to help with investigating the impact of financial shocks on house prices resulting from agent behaviours. The model has been developed in NetLogo \citep{Wilensky1999} as an extension to \citet{Gilbert2009}. The model structure and agent behaviours are informed by the characteristics of the UK housing market --- with a market constituted of budget bound buyers acquiring residential units without a bidding process. The agents interact within an abstract square grid representing land units. Details of the agents, their behaviours and interactions are described hereafter.
+
+\subsection{Agents}
+The model includes two types of agents: (1) households; and (2) realtors \footnote{In the UK, these are called estate agents, but we have named them realtors to avoid confusion with the agents in the model}. Households represent family units that occupy houses. There are two types of households: (a) those who are buying their house using a mortgage (or who have had a mortgage that is now paid off); and (b) those who are renting from a private landlord (housing associations and  public (local authority) landlords are not included in the model). Mortgage households occupy a 'mortgage house', and rental households occupy a 'rent house'. Houses represent spatial entities with no agency that can be occupied by households. Each house takes up a square of the model space, and each square can include one house at most. Mortgage houses are owned and occupied by a household agent (owner). Rent houses are owned by a mortgage household (considered as the landlord of the rent house) and occupied by another rent household (the tenant). Landlord agents must own both their homes and the house or houses that they rent out. Households can switch types under specific conditions, and they can modify the types of houses as mentioned in the \nameref{Actions and Interactions} section. Realtors represent estate agents who assess the price of the houses that they sell and put them on the market initially at that price. They have access to records that retain information about their previous transactions (sales, purchases and house prices) in the housing market.
+
+\subsubsection{State Variables and Heterogeneity} \label{Heterogeneity}
+
+\M{Households}, houses, realtors and records each have a set of state variables, and the ABM includes a set of global variables as described in Table \ref{tab:1}. 
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{l l l l l}
+	\toprule
+    % first line
+     & State variable & Label & Description & Type \\
+	\midrule
+    \multirow{12}{*}{\rotatebox[x=0cm, y=0cm]{90}{Household}}
+        & income* & & Yearly income & int \\
+        & capital & \(c\) & Total accumulated savings & int \\
+        & my-ownership* & & Set of owned houses & list\{house\} \\
+        & my-house* & & Currently occupied house & house \\
+        & mortgage & \(m\) & Remaining mortgage of each house in my-ownership & list\{float\}\\
+        & paid-mortgage & \(\mu\) & The amount of paid mortgage for each house in my-ownership & list\{float\} \\
+        & repayment & \(a\) & Repayment per time step for each house in my-ownership & list\{float\} \\
+        & rate-duration & & Agreed number of time steps for the mortgage interest rate & int \\
+        & rent & \(r\) & Rent paid for my current house & float \\
+        & propensity* & & Willingness of a \M{household} will invest in the housing market & float \\
+        & market & & Housing market the \M{household} is currently in as a buyer & str \\
+    \midrule
+    \multirow{4}{*}{\rotatebox[x=0cm, y=0cm]{90}{Realtor}} 
+        & locality* & & Awareness radius of realtors for houses & int \\
+        & memory* & & Number of previous years a realtor is aware of & int \\
+        & mean-price & \(\Tilde{p}\) & Mean price of houses within the locality & float \\
+        & mean-rent & \(\Tilde{r}\) & Mean rent of houses within the locality & float \\
+    \midrule
+    \multirow{9}{*}{\rotatebox[x=0cm, y=0cm]{90}{House}} 
+        & price & \(p\) & Price of the house in the last market transaction & float \\
+        & rent & \(r\) & Rent price of the house in the last market transaction & float \\
+        & my-owner* & & \M{Household} owning the house & \M{household} \\
+        & my-occupier* & & \M{Household} currently occupying the house & \M{household} \\
+        & for-sale? & & Whether the house is offered for sale or not & boolean \\
+        & for-rent? & & Whether the house is offered for rent or not & boolean \\
+        & age & & Number of time steps the house has been in the system & int \\
+        & demolish-age & & Age at which the house is demolished & int \\
+    \midrule
+    \multirow{5}{*}{\rotatebox[x=0cm, y=0cm]{90}{Record}} 
+        & house & & House exchanged during a market transaction & house \\
+        & time & & Run step at which the house has been exchanged & int \\
+        & price & \(p\) & Price of the house at exchange & float \\
+        & rent & \(r\) & Rent price of the house at agreeing tenancy & float \\
+    \midrule
+    \multirow{27}{*}{\rotatebox[x=0cm, y=0cm]{90}{Global}} 
+        & interest-rate & \(I.s\) & Annual interest rate on borrowing money & float \\
+        & propensity-threshold & & propensity required for a rich \M{household} to invest in the housing market & float \\
+        & occupancy-ratio & & Ratio of houses occupied at initialisation & float \\
+        & owners-to-tenants & & Ratio of \M{households} owning a house to \M{households} on a tenancy & float \\
+        & LTV & \(L\) & Maximum loan to value ratio on buying a house & float \\
+        & mortgage-duration & \(d\) & Maximum mortgage duration in years & int \\
+        & rate-duration-M & & Maximum fixed rate duration on a normal mortgage & int \\
+        & rate-duration-BTL & & Maximum fixed rate duration on a buy-to-let mortgage & int \\
+        & mean-income & \(\Tilde{y}\) & Mean income of new \M{households} & float \\
+        & wage-increase & \(W\) & Percentage of wage rise per year & float \\
+        & affordability & \(\alpha\) & Maximum portion of capital used to spend on housing commodities & float \\
+        & savings-M & & Percentage of yearly income mortgage households save & float \\
+        & savings-R & & Percentage of yearly income rent households save & float \\
+        & homeless-period & & Maximum steps a household can remain homeless before exiting & int \\
+        & on-market-period & & Maximum steps a household can remain on the market & int \\
+        & cool-down-period & & Minimum steps a household must spend before re-entering the market & int \\
+        & search-length & & Number of houses a household considers when buying a house & int \\
+        & construction-rate & & Percentage of houses built yearly & float \\
+        & entry-rate & & Percentage of households randomly entering the system & float \\
+        & exit-rate & & Percentage of households randomly exiting the system  & float \\
+        & realtor-territory & & Radius of the realtor's locality & int \\
+        & price-drop-rate & & Percentage of prices decrease per step for houses on the market & float \\
+        & rent-drop-rate & & Percentage of rents decrease per step for houses on the market & float \\
+        & savings-threshold-M & \(\omega\) & Factor controlling the `relatively rich' threshold of mortgage households & float \\
+        & evict-threshold-M & \(\beta\) & Factor controlling the `relatively poor' threshold of mortgage households & float \\
+        & savings-threshold-R & \(\lambda\) & Factor controlling the `relatively rich' threshold of rent households & float \\
+        & evict-threshold-R & \(\gamma\) & Factor controlling the `relatively poor' threshold of mortgage households & float \\
+        & steps-per-year & & Number of steps representing each year in the model runs & int \\
+    
+	% table body	
+	\bottomrule		
+    \multicolumn{5}{r}{* indicates \M{external} variables at initialisation} \\
+	\end{tabular}
+	\caption{State Variables}
+	\label{tab:1}	
+\end{table}
+
+Households are assigned a type, a state describing whether their mortgage is fully paid or not and an income when they are introduced into the model. Their incomes are random values drawn from a gamma distribution --- which approximates the distribution of income in the UK \citep{ONS2024population}. The initial income is then used to determine the household's initial capital, the repayments of their mortgage or their rent, and these in turn are used to assign a price to the house in which the household lives (for details, see below). This initialisation procedure ensures that income, capital, rents, and house prices are all heterogeneous between households and are coherent for a given household. Realtors have unique spatial locations, and there are heterogeneous sets of houses within each realtor's locality.
+
+\subsubsection{Intentions} \label{Intentions}
+A household's intention is to keep occupying a house and avoid being homeless. Their intention extends to investing in the housing market under specific income and capital conditions (see \nameref{Actions and Interactions}). A realtor's intention is to value house prices and rents when requested by households.
+
+\subsection{Actions and Interactions} \label{Actions and Interactions}
+
+We follow the actions of each agent type at initialisation and during the runs separately. The interactions between the agents are highlighted where relevant.
+
+\subsubsection{Households}
+
+Households at initialisation are assigned a type and an income. They are then assigned starting values of: (1) the amount of capital they hold; (2) the house or houses they own or rent; and (3) the mortgage or rent they pay. 
+
+First, households calculate their capital as a multiple of their income as shown in equation \ref{eq:1}.
+\begin{equation} \label{eq:1}
+    c_{i,t_0} = y_{i,t_0} . \eta_i
+\end{equation}
+where \(c_{i}\) is the initial capital of a household \(i\), \(t_0\), \(y_i\) is their income at initialisation and \(\eta_i\) is a factor reflecting the ratio of capital to income.
+
+Second, mortgage households randomly select one house of type mortgage to occupy, and they randomly add a set of houses of type rent to their ownership. The households update the `my-owner' variable of the houses accordingly. This only stops once all houses have been assigned an owner household. 
+
+Third, to set prices, mortgage households calculate the highest repayment they can afford by comparing it to the income they are willing to spend on housing commodities as shown in equation \ref{eq:2}. They then determine the maximum mortgage they can pay while considering their maximum repayment and the duration of the mortgage following equation \ref{eq:3}. This formula is derived from \citet{Kohn1990}'s calculation for the repayments as a function of the interest rate, the duration and the borrowed amount (see \nameref{Maximum mortgage calculation}). Based on the this maximum mortgage and the maximum loan-to-value ratio, the households calculate the deposit they have to pay according to equation \ref{eq:3b}.
+\begin{equation} \label{eq:2}
+    a_{i,{t_0}} = \frac{y_{i,{t_0}}.\alpha_i}{s}
+\end{equation}
+\begin{equation} \label{eq:3}
+    M_{i,{t_0}} = \frac{a_{i,{t_0}}}{I_{t_0}}.(1 - (1 + I_t)^{-d_{t_0}.s})
+\end{equation}
+\begin{equation} \label{eq:3b}
+    D_{i,{t_0}} = M_{i,{t_0}} . (\frac{1}{L} - 1)
+\end{equation}
+where \(a_{i,t_0}\) is the repayment at the initialisation time step \({t_0}\), \(\alpha_i\) is the maximum proportion of \(y_{i,t_0}\) to be used on housing (the affordability ratio), \(I_{t_0}\) is the interest rate per time step, \(s\) is the number of time steps per year, \(M_{i,{t_0}}\) is the maximum mortgage value the household can cover and \(d_{t_0}\) is the maximum mortgage duration, \(D_{i,{t_0}}\) is the deposit given the maximum mortgage \(M_{i,{t_0}}\) and \(L\) is the current loan-to-value ratio.
+
+Rent households calculate the rent they will be charged. Following a similar logic to equation \ref{eq:2}, the rent households use their spending on housing commodities to dictate the highest rent they can pay as shown in equation \ref{eq:4}.
+\begin{equation} \label{eq:4}
+    b_{i,{t_0}} = \frac{y_{i,{t_0}}.\alpha_i}{s}
+\end{equation}
+where \(b_i\) is the proportion of income to be paid for rent.
+
+Mortgage and Rent households then assign prices and rents for their respective houses as shown in equations \ref{eq:5} and  \ref{eq:6}. Mortgage houses are assigned a price equivalent to their owners' mortgage as calculated in equation \ref{eq:3}. Rent houses are assigned a rent equivalent to the highest rent the tenant can pay as long as this is higher than the owner's repayments. Otherwise, the rent is set to the owner's repayments, and tenants update their income to match the new rent.
+\begin{equation} \label{eq:5}
+    p_{j|i} = M_{i,t_0} + D_{i,{t_0}}
+\end{equation}
+\begin{equation} \label {eq:6}
+    r_{j|i,i^*} = 
+    \begin{cases}
+        b_{i^*,t}\text{ ,} & \text{if } b_{i^*,t} > a_{i,t} \\
+        a_{i,t}\text{ ,} & \text{otherwise}
+    \end{cases}
+\end{equation}
+where \(p_{j|i}\) is the price of the house \(j\) with owner \(i\), \(r_{j|i,i^*}\) is the rent for a house with  owner \(i\) and tenant \(i^*\), \(b_{i^*,t}\) is the maximum rent a tenant is willing to pay as per equation \ref{eq:4} and \(a_{i,t}\) is the repayment of the owner of the house as per equation \ref{eq:2}. If the rent is set to the repayment of the owner (i.e., \(r_{j|i,i^*} = a_{i,t}\)), the tenants increase their income to match the higher rent as shown in equation \ref{eq:n}.
+\begin{equation}\label{eq:n}
+    y_{i^*} = \frac{r_{j|i,i^*}.s}{\alpha}\text{ ,} \quad \text{if } r_{j|i,i^*} = a_{i,t}
+\end{equation}
+where \(y_{i^*}\) is the new income of the tenant \(i^*\) if the initial income cannot cover the rent \(r_{j|i,i^*}\) that is calculated based on the repayments \(a_{i,t}\) of the house owner \(i\).
+
+Mortgage households are then assigned their actual current mortgage as a proportion of the price taking into account the loan-to-value ratio as shown in equation \ref{eq:m}.
+\begin{equation} \label{eq:m}
+    m_{i,j} = L.p_j
+\end{equation}
+where \(m_{i,j}\) is the mortgage for the owner \(i\) of house \(j\) and \(L\) is the maximum LTV.
+
+
+During the runs, existing households: (1) check their finances; (2) join a housing market if their finances allow it; and (3) may exit from the system if they have been unable to find a house --- exiting households are not automatically replaced, rather there is an immigration rate which generates new households (immigrants) every time step. Immigrant households: (1) enter the system; and (2) join a housing market.
+
+In more detail, existing mortgage households check their financial status considering their mortgages, repayments, normal incomes and incomes from rent. They check the two conditions in equation \ref{eq:7}, that: (a) their capital is higher than the median deposit needed given the median value of all their current mortgages and (b) their residual income can cover a new repayment equal to the the median of the current repayments. If these conditions are satisfied, the household is considered `relatively rich'. Relatively rich households have a high income and capital compared to the cost of their own house(s). This puts them in a position to become buyers in the housing market. The mortgage households also check whether their repayment is higher than their annual income including any income from rents (equation \ref{eq:8}). If this condition is satisfied, the household is considered `relatively poor'. Relatively poor households struggle with their housing finances and are in danger of  defaulting on their mortgage or rent leading to possible eviction.
+\begin{equation} \label{eq:7}
+    \begin{cases}
+        c_{i,t} > \omega.\Tilde{m}_{i,J,t}.(1-L_t) \text{ ,} & \text{where } j\in{J} \\
+        y_{i,t} + ((\sum_{j=1}^{n}r_{i,j}).s.\alpha_i) - \sum_{j=1}^{n}a_{i,j,t} > \Tilde{a}_{i,J,t}.s \text{ ,} & \text{where } j\in{J}
+    \end{cases}
+\end{equation}
+\begin{equation} \label{eq:8}
+    \sum_{j=1}^{n}(a_{i,j,t}.s) > \beta.\alpha_i.(y_{i,t}+\sum_{j=1}^{n}(r_j.s)) \\
+\end{equation}
+where \(\omega\) is a factor representing the threshold ratio between the capital and the median mortgages at which a household is considered relatively rich, \(\Tilde{m}_{i,J,t}\) is the median mortgage at time step \(t\), \(L_t\) is the maximum LTV ratio, \(r_{i,j}\) is the rent of house \(j\in{J}\) where \(J\) is the set of rented houses owned by \(i\), \(\Tilde{a}_{i,J,t}\) is the median repayment for all houses in \(J\) and \(\beta\) is a factor representing the threshold ratio between the repayment and the annual income at which a household is considered relatively poor. 
+
+Relatively rich mortgage households invest in the housing market if \(w_i>\Omega\) where \(w_i\) is the probability a household invests in the housing market and \(\Omega\) is the desired investors to non-investors ratio in the model. Relatively poor mortgage households act on the basis of the number of houses they own. If the household owns one house only, the household offers the house for sale and joins the rental market. If the household owns more than one house, the household selects the house yielding the lowest surplus rent compared to its repayment. This house is evicted and placed on the rent market with an initial requested rent equal to at least the mortgage repayment of that house. After a defined period of time, if no tenant makes an offer on the house, the mortgage household decides to sell one of its owned houses on the market to increase its capital. It selects the house yielding the highest expected profit when sold on the mortgage housing market, as shown in equation \ref{eq:9}.
+\begin{equation} \label{eq:9}
+    f_{i,j^*} = 
+    \begin{cases}
+        \max_{j\in{J_{i|v}}}{(p_j - m_{i,j})} \text{ ,} & \text{if } J_{i|v}\neq\phi \\
+        \max_{j\in{J_{i|r}}}{(p_j - m_{i,j})} \text{ ,} & \text{otherwise}
+    \end{cases}
+\end{equation}
+where \(f_{i,j^*}\) is the highest profit yielded by selling house \(j^*\), \(J_{i|v}\) is the set of vacant houses owned by \(i\), \(J_{i|r}\) is the set of rented houses.
+
+Rent households consider their financial situation by looking into their income, capital, expected mortgages, expected repayment and rent. They consider whether their capital is higher than the expected deposit for the house they occupy given the current LTV ratio as shown in equation \ref{eq:10}. If that is satisfied, they are classified as relatively rich. They also check if their rent is higher than their income as shown in equation \ref{eq:11}. If this is the case, they are considered to be relatively poor.
+\begin{equation} \label{eq:10}
+    c_i,t > \lambda.p_{j|i}.(1-L_t)
+\end{equation}
+\begin{equation} \label{eq:11}
+    r_{j|i}.s > \gamma.\alpha.y_{i,t}
+\end{equation}
+where \(p_{j|i}\) and \(r_{j|i}.s\) are the price and rent of the house \(j\) given it is occupied by the \M{household} \(i\), \(\lambda\) is the savings to capital factor and \(\gamma\) is the highest allowed rent to income ratio before evicting the tenant (i.e., an eviction factor).
+
+Relatively rich rent households join the mortgage housing market aiming to become home owners. Relatively poor rent households join the rental market to search for a more affordable rent house.
+
+Finally, households who do not have a house to occupy (i.e., homeless households) get discouraged from the market and leave the system after a defined period of time. Households who own a house and are on the market intending to move get discouraged after a period of time. However, they enter a cool down period before they can re-enter the housing market. The cool down state can only be terminated early in cases where the household become relatively poor or homeless. In that case, they ignore the cool down period and immediately enter the housing market.
+
+New households entering the system are initialised with a type and an income, and they follow equation \ref{eq:1} to calculate their capital. Mortgage immigrant households enter the mortgage housing market, whereas rent immigrant households enter the rent housing market. In subsequent time steps, they follow the process described above. This implies that they exit the system if they do not find a house for a defined period. 
+
+\subsubsection{Realtors}
+Realtors evaluate the prices and rents of houses according to equation \ref{eq:16} and equation \ref{eq:17}. They ensure that prices and rents do not significantly increase to more than double the previous price or decrease to less than half the previous price. It should be noted that these situations only occur in cases of extreme exogenous financial shocks during the runs.
+\begin{equation} \label{eq:16}
+    p_{j,k,t+1} = 
+    \begin{cases}
+        2p_{j,t} \text{ ,} & \text{ if } \frac{\Tilde{p}_{J_k}}{p_{j,t}} > 2 \\
+        \frac{p_{j,t}}{2} \text{ ,} & \text{ if } \frac{\Tilde{p}_{J_k}}{p_{j,t}} < \frac{1}{2} \\
+        \Tilde{p}_{J_k} \text{ ,} & \text{ otherwise}
+    \end{cases}
+\end{equation}
+\begin{equation} \label{eq:17}
+    r_{j,k,t+1} = 
+    \begin{cases}
+        2r_{j,t} \text{ ,} & \text{ if } \frac{\Tilde{r}_{J_k}}{r_{j,t}} > 2 \\
+        \frac{r_{j,t}}{2} \text{ ,} & \text{ if } \frac{\Tilde{r}_{J_k}}{r_{j,t}} < \frac{1}{2} \\
+        \Tilde{r}_{J_k} \text{ ,} & \text{ otherwise}
+    \end{cases}
+\end{equation}
+where \(p_{j,k,t+1}\) and \(r_{j,k,t+1}\) are the price and rent of a house \(j\) in the next time step \(t+1\) and \(\Tilde{p}_{J_k}\) and \(\Tilde{r}_{J_k}\) are the median price and rent of the set of houses \(J_k\) for sale and for rent respectively within realtor \(k\)'s locality.
+
+Realtors  decay the price of unsold  mortgage houses currently on the market as shown in equation \ref{eq:14} and similarly decay the rent of vacant rental properties according to equation \ref{eq:15}. This ensures that unaffordably high prices and rents decrease until households on the markets can make purchases.
+\begin{equation} \label{eq:14}
+    p_{j,t+1} = \rho.p_{j,t}
+\end{equation}
+\begin{equation} \label{eq:15}
+    r_{j,t+1} = \rho.r_{j,t}
+\end{equation}
+where \(\rho\) is the decay rate of prices and rents.
+
+\subsubsection{Houses}
+At initialisation, house prices and rents are assigned according to equation \ref{eq:5} and equation \ref{eq:6}. During the runs, realtors assign  prices and rents following equation \ref{eq:16} and equation \ref{eq:17}. 
+
+New houses are constructed at every time step, the number being proportional to the number of the houses in the system. The new houses are put on the mortgage market, and the realtors assign them prices during the market transactions. The demolition of a house is triggered if the house age is greater than its expected lifetime (a duration set at the time of its construction using a random exponential).
+
+\subsubsection{Records}
+Records save the details of  transactions in the housing market. A record is created once a house is bought or sold to record the price/rent and time step.
+
+\subsection{Temporality} \label{Temporality}
+Time is advanced during model runs in steps. The number of steps per year \(s\) remains constant. At each time step, the agents make decisions and trigger actions such as moving house. Figure \ref{fig:1} is a flow chart showing the ABM initialisation and run schedules. More detailed flowcharts are provided in the appendix in figures \ref{fig:A1.1} and \ref{fig:A1.2}.
+
+At initialisation, houses are constructed and assigned a type (mortgage house or rent house). Households are then assigned randomly to a house, and this dictates the household's type (owner-occupier or renter). Each household calculates the price or rent of its house (equations \ref{eq:5} and \ref{eq:6}). Each rent house is then randomly assigned to a landlord, chosen from the households occupying a mortgage house as an owner.
+
+During the run, first, households assess their financial status. They check their capital, repayments and rents to assess whether they are relatively rich or relatively poor. Relatively rich mortgage households enter the BTL market. Relatively rich rent households enter the mortgage market to buy a home. Relatively poor mortgage households check whether they are a landlord owning a house other than their own. If not, they offer their home for sale. If they are able to sell, they leave their home and enter the rental market intending to become tenants. If they own other houses, and none of their owned houses are currently offered for sale, they choose one to put on the mortgage market. They select the one yielding the highest amount by comparing the house's remaining mortgage to its realtor valuation price. If the house is rented, they evict the tenant before putting the house on the market.
+
+Second, realtors evaluate all the houses on the rent and mortgage markets (equations \ref{eq:14} and \ref{eq:15}). 
+
+Third, households on the mortgage and BTL market make offers on the houses. Starting from the households on the mortgage market followed by those on the BTL market, each household randomly selects a limited number of houses within their budget. That household then selects the most expensive house and makes an offer to purchase it. The house is then withdrawn from the market as "sold subject to contract". This implies that households on the mortgage markets (home buyers) are prioritised during the market clearing process compared to those on the BTL market (investors).
+
+Fourth, the households making the offers check the market chains before finalising the transaction. Consider a household making an offer on house \(A\). If house \(A\) is not occupied, there is no chain to check so the household confirms the purchase and moves to the house. If house \(A\) is occupied, its owner checks if it had made an offer on another house. If it made an offer on house \(B\) for instance, the market chain for house \(B\) must be checked --- that is, whether house \(B\) is occupied or not and whether its owner made an offer on another house. If this last household in the chain confirms they will move to a new house, all the households in that chain can make their purchases (including the ones purchasing houses \(A\) and \(B\)). 
+
+Finally, once all the confirmed market transactions are made, households receive their income and accumulate capital. Households failing to make transactions remain on the market to try again in the next time step.
