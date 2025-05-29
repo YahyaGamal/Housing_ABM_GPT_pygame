@@ -1,0 +1,20 @@
+import math
+
+STEPS_PER_YEAR = 4  # Three months per step
+LOAN_TO_VALUE = 0.9  # LTV = 90%
+INTEREST_RATE = 0.03 / STEPS_PER_YEAR  # quarterly interest rate
+MORTGAGE_DURATION_YEARS = 25
+AFFORDABILITY = 0.3
+PRICE_DROP_RATE = 0.98
+GRID_SIZE = 20
+
+# Thresholds
+OMEGA = 1.2
+BETA = 0.9
+LAMBDA = 1.2
+GAMMA = 0.9
+
+# UI CONSTANTS
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+FPS = 10
